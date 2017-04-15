@@ -50,7 +50,7 @@ extension Sync {
         }
 
         for object in insertedOrUpdatedObjects {
-            object.sync_fill(with: changes, parent: nil, parentRelationship: nil, context: context, operations: [.all], shouldContinueBlock: nil, objectJSONBlock: nil)
+            object.sync_fill(with: changes, parent: nil, parentRelationship: nil, context: context, operations: [.insert, .update], shouldContinueBlock: nil, objectJSONBlock: nil)
         }
 
         if context.hasChanges {
@@ -80,7 +80,7 @@ extension Sync {
 
         let objects = try context.fetch(fetchRequest)
         for updated in objects {
-            updated.sync_fill(with: changes, parent: nil, parentRelationship: nil, context: context, operations: [.all], shouldContinueBlock: nil, objectJSONBlock: nil)
+            updated.sync_fill(with: changes, parent: nil, parentRelationship: nil, context: context, operations: [.update], shouldContinueBlock: nil, objectJSONBlock: nil)
         }
 
         if context.hasChanges {
