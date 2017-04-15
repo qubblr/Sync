@@ -28,21 +28,23 @@ import CoreData
     private var containerURL = URL.directoryURL()
 
     private var _mainContext: NSManagedObjectContext?
+    
 
     /**
      The context for the main queue. Please do not use this to mutate data, use `performInNewBackgroundContext`
      instead.
      */
-    public lazy var mainContext: NSManagedObjectContext = {
-        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        context.undoManager = nil
-        context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
-        context.persistentStoreCoordinator = self.persistentStoreCoordinator
-
-        NotificationCenter.default.addObserver(self, selector: #selector(DataStack.mainContextDidSave(_:)), name: .NSManagedObjectContextDidSave, object: context)
-
-        return context
-    }()
+    public var mainContext: NSManagedObjectContext {
+        if _mainContext == nil {
+            _mainContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+            _mainContext?.undoManager = nil
+            _mainContext?.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+            _mainContext?.persistentStoreCoordinator = self.persistentStoreCoordinator
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(DataStack.mainContextDidSave(_:)), name: .NSManagedObjectContextDidSave, object: _mainContext)
+        }
+        return _mainContext!
+    }
 
     /**
      The context for the main queue. Please do not use this to mutate data, use `performBackgroundTask`
@@ -305,6 +307,8 @@ import CoreData
                         do {
                             try self.persistentStoreCoordinator.destroyPersistentStore(at: storeURL, ofType: self.storeType.type, options: store.options)
                             try! self.persistentStoreCoordinator.addPersistentStore(storeType: self.storeType, bundle: self.modelBundle, modelName: self.modelName, storeName: self.storeName, containerURL: self.containerURL)
+
+                            self._mainContext = nil
 
                             DispatchQueue.main.async {
                                 completion?(nil)
